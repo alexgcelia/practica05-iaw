@@ -17,6 +17,9 @@ services:
     depends_on:
       - mysql
     restart: always
+    networks:
+      - frontend-network
+      - backend-network
 
   mysql:
     image: mysql:8.0
@@ -29,19 +32,20 @@ services:
       - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
+    restart: always
     networks: 
       - backend-network
-    restart: always
-    
+        
   phpmyadmin:
     image: phpmyadmin
     ports:
       - 8080:80
     environment: 
-      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
     restart: always
-    depends_on: 
-      - mysql
+    networks:
+      - frontend-network
+      - backend-network
 
   https-portal:
     image: steveltn/https-portal:1
@@ -50,7 +54,7 @@ services:
       - 443:443
     restart: always
     environment:
-      DOMAINS: 'ansible-practica.ddns.net -> http://wordpress:80'
+      DOMAINS: '${DNS_DOMAIN_SECURE} -> http://wordpress:80'
       STAGE: 'production'
     networks:
       - frontend-network    
